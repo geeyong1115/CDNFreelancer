@@ -11,6 +11,5 @@ Edit Page(API - GET, PUT)
 
 BONUS:
 - Client side development
-- Caching Strategy
 - Pagination
 - Error Handling
