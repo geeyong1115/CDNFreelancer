@@ -10,11 +10,12 @@ namespace CDNFreelancer.Controllers
 {
     public class UsersController : Controller
     {
-        public async Task<IActionResult> Index(int page = 1, int pageSize = 3)
+        public async Task<IActionResult> Index(int page = 1, int pageSize = 5)
         {
             PagedResult<User> pagedResult = new PagedResult<User>
             {
-                Results = new List<User>() // Initialize Results as an empty list
+                // Initialize Results as an empty list
+                Results = new List<User>() 
             };
             try
             {
@@ -83,6 +84,7 @@ namespace CDNFreelancer.Controllers
                         }
                         else
                         {
+                            //add a model error to the ModelState dictionary.
                             ModelState.AddModelError(string.Empty, "An error occurred while retrieving the user. Please try again later.");
                         }
                     }
@@ -105,29 +107,34 @@ namespace CDNFreelancer.Controllers
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            // Check if user model is valid
+            if (!TryValidateModel(user))
             {
-                using (var httpClient = new HttpClient())
+                // Return to the same view with the current user object, which will show validation errors
+                return View(user);
+            }
+
+            using (var httpClient = new HttpClient())
+            {
+                var content = new StringContent(JsonSerializer.Serialize(user), Encoding.UTF8, "application/json");
+                using (var response = await httpClient.PutAsync($"https://localhost:7165/api/usersapi/{id}", content))
                 {
-                    var content = new StringContent(JsonSerializer.Serialize(user), Encoding.UTF8, "application/json");
-                    using (var response = await httpClient.PutAsync($"https://localhost:7165/api/usersapi/{id}", content))
+                    if (response.IsSuccessStatusCode)
                     {
-                        if (response.IsSuccessStatusCode)
-                        {
-                            return RedirectToAction(nameof(Index));
-                        }
-                        else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-                        {
-                            return NotFound();
-                        }
-                        else
-                        {
-                            return StatusCode((int)response.StatusCode);
-                        }
+                        return RedirectToAction(nameof(Index));
+                    }
+                    else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        return StatusCode((int)response.StatusCode);
                     }
                 }
+
             }
-            return View(user);
+            
         }
 
         public async Task<IActionResult> Delete(int id)
@@ -162,6 +169,7 @@ namespace CDNFreelancer.Controllers
                     {
                         if (response.IsSuccessStatusCode)
                         {
+                            //convert
                             string apiResponse = await response.Content.ReadAsStringAsync();
                             var addedUser = JsonSerializer.Deserialize<User>(apiResponse);
                             return RedirectToAction("Index");
