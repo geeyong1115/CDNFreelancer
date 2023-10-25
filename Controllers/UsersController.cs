@@ -55,6 +55,7 @@ namespace CDNFreelancer.Controllers
 
                     ViewBag.CurrentPage = page;
                     ViewBag.TotalPages = (int)Math.Ceiling(pagedResult.TotalCount / (double)pageSize);
+                    ViewBag.PageSize = pageSize;
                 }
             }
             catch (Exception ex)
@@ -71,6 +72,8 @@ namespace CDNFreelancer.Controllers
         public async Task<IActionResult> Edit(int id)
         {
             User user = new User();
+            ViewBag.ErrorOccur = false;
+
             try
             {
                 using (var httpClient = new HttpClient())
@@ -86,6 +89,7 @@ namespace CDNFreelancer.Controllers
                         {
                             //add a model error to the ModelState dictionary.
                             ModelState.AddModelError(string.Empty, "An error occurred while retrieving the user. Please try again later.");
+                            ViewBag.ErrorOccur = true;
                         }
                     }
                 }
@@ -102,6 +106,8 @@ namespace CDNFreelancer.Controllers
         [HttpPost]
         public async Task<IActionResult> Edit(int id, User user)
         {
+            ViewBag.ErrorOccur = false;
+
             if (id != user.Id)
             {
                 return NotFound();
@@ -110,7 +116,6 @@ namespace CDNFreelancer.Controllers
             // Check if user model is valid
             if (!TryValidateModel(user))
             {
-                // Return to the same view with the current user object, which will show validation errors
                 return View(user);
             }
 
