@@ -98,7 +98,6 @@ namespace CDNFreelancer.Controllers
 
         //Call Edit API
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, User user)
         {
             if (id != user.Id)
